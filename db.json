@@ -48,5 +48,30 @@
       "id": "kuvpNvG"
     }
   ],
-  "tickets": []
+  "tickets": [
+    {
+      "eventId": "1",
+      "id": 1
+    },
+    {
+      "eventId": "1",
+      "id": 2
+    },
+    {
+      "eventId": "1",
+      "id": 3
+    },
+    {
+      "eventId": "1",
+      "id": 4
+    },
+    {
+      "eventId": "2",
+      "id": 5
+    },
+    {
+      "eventId": "2",
+      "id": 6
+    }
+  ]
 }
