@@ -6,7 +6,14 @@ import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: EventList },
-  { path: 'event/:id', component: EventDetails },
-  { path: 'admin/create', component: CreateEvent, canActivate: [authGuard] },
+  {
+    path: 'event/:id',
+    loadComponent: () => import('./features/events/event-details').then((c) => c.EventDetails),
+  },
+  {
+    path: 'admin/create',
+    loadComponent: () => import('./features/admin/create-event').then((c) => c.CreateEvent),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: '' },
 ];

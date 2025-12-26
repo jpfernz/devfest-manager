@@ -1,7 +1,7 @@
 import { Component, inject, input } from '@angular/core';
 import { EventsService } from '../../core/events.service';
 import { RouterLink } from '@angular/router';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgOptimizedImage } from '@angular/common';
 import { CartService } from '../../core/cart.service';
 
 @Component({
@@ -36,24 +36,59 @@ import { CartService } from '../../core/cart.service';
           <p class="text-gray-700 leading-relaxed text-lg">{{ event.description }}</p>
         </div>
 
+        <div class="h-96 p-12">
+          <p>Check the venue details below</p>
+        </div>
+
+        <div class="bg-gray-50 p-6 rounded-xl h-fit border border-gray-100">
+          @defer (hydrate on viewport) {
+            <div class="h-140 bg-gray-200 rounded mb-4 overflow-hidden relative">
+              <img
+                [ngSrc]="'/images/venue-map.png'"
+                width="500"
+                height="600"
+                class="w-full h-full object-cover"
+              />
+            </div>
+          } @placeholder {
+            <div
+              class="h-140 bg-gray-100 rounded mb-4 flex items-center justify-center border-2 border-dashed border-gray-300"
+            >
+              <span class="text-gray-400">Map Loading...</span>
+            </div>
+          }
+        </div>
+
         <!-- Right: Actions -->
         <div class="bg-gray-50 p-6 rounded-xl h-fit border border-gray-100">
           <div class="h-48 bg-gray-200 rounded mb-4 overflow-hidden">
             <!-- We will optimize this image in Day 2 -->
-            <img [src]="event.image" class="w-full h-full object-cover" />
+            <img
+              [ngSrc]="event.image"
+              width="200"
+              height="200"
+              priority
+              class="w-full h-full object-cover"
+            />
           </div>
 
-          <button
-            (click)="addToCart()"
-            class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-lg transition"
-          >
-            Buy Tickets
-          </button>
+          @defer (hydrate on interaction) {
+            <button
+              (click)="addToCart()"
+              class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-lg transition"
+            >
+              Buy Ticket
+            </button>
+          } @placeholder {
+            <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold opacity-90">
+              Buy Ticket
+            </button>
+          }
         </div>
       }
     </div>
   `,
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, NgOptimizedImage],
 })
 export class EventDetails {
   private readonly eventService = inject(EventsService);
