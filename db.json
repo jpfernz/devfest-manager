@@ -7,7 +7,11 @@
       "description": "The future of the framework revealed. Join the Angular team as they unveil the latest advancements in reactivity, hydration, and tooling.",
       "location": "Main Hall",
       "image": "/images/angular-keynote.png",
-      "speakers": ["Sarah Drasner", "Minko Gechev", "Mark Techson"]
+      "speakers": [
+        "Sarah Drasner",
+        "Minko Gechev",
+        "Mark Techson"
+      ]
     },
     {
       "id": "2",
@@ -16,7 +20,10 @@
       "description": "Mastering the primitive that changed everything. Learn how to architect complex state without the chaos of manual subscriptions.",
       "location": "Room 3B",
       "image": "/images/signals-deep-dive.png",
-      "speakers": ["Alex Rickabaugh", "Pawel Kozlowski"]
+      "speakers": [
+        "Alex Rickabaugh",
+        "Pawel Kozlowski"
+      ]
     },
     {
       "id": "3",
@@ -25,7 +32,20 @@
       "description": "Hydration, Defer, and Performance. How to deliver instant TTI using Angular's new Incremental Hydration engine.",
       "location": "Auditorium",
       "image": "/images/ssr-at-scale.png",
-      "speakers": ["Jessica Janiuk"]
+      "speakers": [
+        "Jessica Janiuk"
+      ]
+    },
+    {
+      "title": "LD Advanced Angular Training",
+      "description": "External Advanced Angular Training",
+      "date": "2026-01-26T09:00",
+      "location": "Clayton Hotel Galway",
+      "speakers": [
+        "Neuda"
+      ],
+      "image": "/images/event4.png",
+      "id": "kuvpNvG"
     }
   ],
   "tickets": []
