@@ -3,6 +3,8 @@ import { EventsService } from '../../core/events.service';
 import { RouterLink } from '@angular/router';
 import { DatePipe, NgOptimizedImage } from '@angular/common';
 import { CartService } from '../../core/cart.service';
+import { TabGroup } from '../../shared/tabs/tab-group';
+import { Tab } from '../../shared/tabs/tabs';
 
 @Component({
   selector: 'app-event-details',
@@ -27,68 +29,88 @@ import { CartService } from '../../core/cart.service';
       <!-- Success State -->
       @if (eventResource.hasValue()) {
         @let event = eventResource.value()!;
-        <!-- Left: Content -->
-        <div class="md:col-span-2 space-y-4">
-          <h1 class="text-4xl font-bold text-gray-900">{{ event.title }}</h1>
-          <p class="text-gray-500 text-lg">
-            {{ event.date | date: 'fullDate' }} • {{ event.location }}
-          </p>
-          <p class="text-gray-700 leading-relaxed text-lg">{{ event.description }}</p>
-        </div>
 
-        <div class="h-96 p-12">
-          <p>Check the venue details below</p>
-        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Left: Content -->
+          <div class="md:col-span-2 space-y-4">
+            <h1 class="text-4xl font-bold text-gray-900">{{ event.title }}</h1>
+            <p class="text-gray-500 text-lg">
+              {{ event.date | date: 'fullDate' }} • {{ event.location }}
+            </p>
 
-        <div class="bg-gray-50 p-6 rounded-xl h-fit border border-gray-100">
-          @defer (hydrate on viewport) {
-            <div class="h-140 bg-gray-200 rounded mb-4 overflow-hidden relative">
+            <app-tab-group>
+              <app-tab label="Overview">
+                <p class="text-gray-700 leading-relaxed text-lg">{{ event.description }}</p>
+              </app-tab>
+
+              <app-tab label="Venue">
+                <p class="mb-4 text-gray-600">Location: {{ event.location }}</p>
+
+                <!-- Move our Defer block from Mod 1 here! -->
+                @defer (hydrate on viewport) {
+                  <div class="h-64 bg-gray-200 rounded relative">
+                    <img src="/images/venue-map.png" class="object-cover w-full h-full" />
+                  </div>
+                } @placeholder {
+                  <div class="h-64 bg-gray-100 flex items-center justify-center">
+                    Loading Map...
+                  </div>
+                }
+              </app-tab>
+
+              <app-tab label="Speakers">
+                @if (event.speakers.length > 0) {
+                  <ul class="space-y-3">
+                    @for (speaker of event.speakers; track speaker) {
+                      <li class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div
+                          class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold"
+                        >
+                          {{ speaker.charAt(0) }}
+                        </div>
+                        <span class="text-gray-700 font-medium">{{ speaker }}</span>
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <div class="p-4 bg-yellow-50 text-yellow-800 rounded">
+                    Speaker list coming soon.
+                  </div>
+                }
+              </app-tab>
+            </app-tab-group>
+          </div>
+
+          <!-- Right Actions -->
+          <div class="bg-gray-50 p-6 rounded-xl h-fit border border-gray-100">
+            <div class="h-48 bg-gray-200 rounded mb-4 overflow-hidden">
+              <!-- We will optimize this image in Day 2 -->
               <img
-                [ngSrc]="'/images/venue-map.png'"
-                width="500"
-                height="600"
+                [ngSrc]="event.image"
+                width="200"
+                height="200"
                 class="w-full h-full object-cover"
               />
             </div>
-          } @placeholder {
-            <div
-              class="h-140 bg-gray-100 rounded mb-4 flex items-center justify-center border-2 border-dashed border-gray-300"
-            >
-              <span class="text-gray-400">Map Loading...</span>
-            </div>
-          }
-        </div>
 
-        <!-- Right: Actions -->
-        <div class="bg-gray-50 p-6 rounded-xl h-fit border border-gray-100">
-          <div class="h-48 bg-gray-200 rounded mb-4 overflow-hidden">
-            <!-- We will optimize this image in Day 2 -->
-            <img
-              [ngSrc]="event.image"
-              width="200"
-              height="200"
-              priority
-              class="w-full h-full object-cover"
-            />
+            @defer (hydrate on interaction) {
+              <button
+                (click)="addToCart()"
+                class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-lg transition active:scale-95 disabled:opacity-50 disabled:cursor-wait"
+              >
+                Buy Ticket
+              </button>
+            } @placeholder {
+              <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold opacity-90">
+                Buy Ticket
+              </button>
+            }
           </div>
-
-          @defer (hydrate on interaction) {
-            <button
-              (click)="addToCart()"
-              class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 shadow-lg transition"
-            >
-              Buy Ticket
-            </button>
-          } @placeholder {
-            <button class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold opacity-90">
-              Buy Ticket
-            </button>
-          }
         </div>
       }
     </div>
   `,
-  imports: [RouterLink, DatePipe, NgOptimizedImage],
+  imports: [RouterLink, DatePipe, NgOptimizedImage, TabGroup, Tab],
 })
 export class EventDetails {
   private readonly eventService = inject(EventsService);
