@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CartService } from '../core/cart.service';
+import { CartStore } from '../core/cart.store';
 
 @Component({
   selector: 'app-header',
@@ -32,7 +33,7 @@ import { CartService } from '../core/cart.service';
           <button
             class="bg-white text-blue-700 px-4 py-2 rounded-full font-bold shadow hover:bg-gray-100 transition"
           >
-            Tickets: {{ count() }}
+            Tickets: {{ cartStore.count() }}
           </button>
         </nav>
       </div>
@@ -40,5 +41,5 @@ import { CartService } from '../core/cart.service';
   `,
 })
 export class Header {
-  readonly count = inject(CartService).count;
+  readonly cartStore = inject(CartStore);
 }
