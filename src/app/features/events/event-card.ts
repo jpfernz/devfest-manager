@@ -2,9 +2,21 @@ import { DatePipe, NgOptimizedImage } from '@angular/common';
 import { Component, computed, input, linkedSignal, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { UiCard } from '../../shared/ui-card';
+import { ClickLogger } from '../../shared/directives/click-logger';
 
 @Component({
   selector: 'app-event-card',
+  // COMPOSE BEHAVIOR
+  // Every time <app-event-card> is rendered, Angular will automatically
+  // attach a new instance of ClickLogger to it.
+  hostDirectives: [
+    {
+      directive: ClickLogger,
+      // We expose the directive's 'eventName' input as 'trackingId'
+      // so the parent can do: <app-event-card [trackingId]="..." />
+      inputs: ['eventName: trackingId'],
+    },
+  ],
   imports: [DatePipe, RouterLink, NgOptimizedImage, UiCard],
   template: `
     <app-ui-card>

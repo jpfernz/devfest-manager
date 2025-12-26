@@ -32,6 +32,7 @@ import { EventsService } from '../../core/events.service';
             [id]="event.id"
             [title]="event.title"
             [date]="event.date"
+            [trackingId]="'event_card_' + event.id"
             [image]="event.image"
             (delete)="deleteEvent(event.id)"
           />
