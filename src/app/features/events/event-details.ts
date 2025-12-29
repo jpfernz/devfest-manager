@@ -2,7 +2,6 @@ import { Component, inject, input } from '@angular/core';
 import { EventsService } from '../../core/events.service';
 import { RouterLink } from '@angular/router';
 import { DatePipe, NgOptimizedImage } from '@angular/common';
-import { CartService } from '../../core/cart.service';
 import { TabGroup } from '../../shared/tabs/tab-group';
 import { Tab } from '../../shared/tabs/tabs';
 import { CartStore } from '../../core/cart.store';
@@ -11,7 +10,6 @@ import { CartStore } from '../../core/cart.store';
   selector: 'app-event-details',
   template: `
     <div class="bg-white rounded-xl shadow-lg p-8 max-w-4xl mx-auto min-h-[600px]">
-      <!-- TODO Mod 3: Use Input Binding for ID -->
       <!-- Back Button -->
       <a routerLink="/" class="text-blue-600 hover:underline mb-6 inline-block">
         ← Back to Events
@@ -120,7 +118,6 @@ import { CartStore } from '../../core/cart.store';
 })
 export class EventDetails {
   private readonly eventService = inject(EventsService);
-  // private readonly cartService = inject(CartService);
   readonly cartStore = inject(CartStore);
 
   readonly id = input.required<string>();
@@ -128,7 +125,6 @@ export class EventDetails {
   readonly eventResource = this.eventService.getEventResource(this.id);
 
   addToCart() {
-    // this.cartService.addTicket(this.id());
     this.cartStore.addToCart({ eventId: this.id() });
   }
 }
