@@ -13,25 +13,32 @@ This document provides a comprehensive assessment of state management approaches
 Angular Signals are a reactive primitive introduced in Angular 16 and matured through version 20. They provide a simple, efficient way to manage and track state changes with fine-grained reactivity. A signal is essentially a wrapper around a value that notifies consumers when that value changes.
 
 ```typescript
-import { signal, computed, effect } from '@angular/core';
+import { Injectable, computed, effect, signal } from '@angular/core';
 
-// Creating a signal
-const count = signal(0);
+@Injectable({ providedIn: 'root' })
+export class CounterState {
+  // Creating a signal
+  readonly count = signal(0);
 
-// Reading a signal value
-console.log(count()); // 0
+  // Computed signals (derived state)
+  readonly doubleCount = computed(() => this.count() * 2);
 
-// Updating a signal
-count.set(5);
-count.update((value) => value + 1);
+  constructor() {
+    // Effects must be created in an injection context (e.g., component/service)
+    effect(() => {
+      console.log(`Count changed to: ${this.count()}`);
+    });
+  }
 
-// Computed signals (derived state)
-const doubleCount = computed(() => count() * 2);
+  // Updating a signal
+  setCount(value: number) {
+    this.count.set(value);
+  }
 
-// Effects (side effects)
-effect(() => {
-  console.log(`Count changed to: ${count()}`);
-});
+  increment() {
+    this.count.update((value) => value + 1);
+  }
+}
 ```
 
 ### Signals vs RxJS State Management
@@ -60,18 +67,21 @@ console.log(count$.getValue());
 **Signal Pattern:**
 
 ```typescript
-import { signal, effect } from '@angular/core';
+import { Injectable, effect, signal } from '@angular/core';
 
-const count = signal(0);
+@Injectable({ providedIn: 'root' })
+export class CounterState {
+  readonly count = signal(0);
 
-// React to changes
-effect(() => console.log(count()));
+  constructor() {
+    // React to changes
+    effect(() => console.log(this.count()));
+  }
 
-// Update value
-count.set(5);
-
-// Get current value
-console.log(count());
+  setCount(value: number) {
+    this.count.set(value);
+  }
+}
 ```
 
 #### Key Differences
@@ -161,7 +171,9 @@ export class ProductListComponent {
 <!-- Template - no async pipe needed -->
 <input [ngModel]="filter()" (ngModelChange)="filter.set($event)" />
 
-<div *ngFor="let product of filteredProducts()">{{ product.name }}</div>
+@for (product of filteredProducts(); track product.id ?? $index) {
+<div>{{ product.name }}</div>
+}
 ```
 
 ### When RxJS is More Effective
@@ -222,6 +234,8 @@ export class DataComponent {
   private refreshTrigger$ = new Subject<void>();
 
   constructor(private dataService: DataService) {
+    // Modern Angular: ensure subscriptions are cleaned up automatically
+    // (requires `import { takeUntilDestroyed } from '@angular/core/rxjs-interop';`)
     this.refreshTrigger$
       .pipe(
         tap(() => this.isLoading.set(true)),
@@ -230,6 +244,7 @@ export class DataComponent {
           this.data.set(result);
           this.isLoading.set(false);
         }),
+        takeUntilDestroyed(),
       )
       .subscribe();
   }
@@ -318,10 +333,12 @@ export const TodoStore = signalStore(
   template: `
     <input #input (keyup.enter)="addTodo(input.value); input.value = ''" />
 
-    <div *ngFor="let todo of store.filteredTodos()">
-      <input type="checkbox" [checked]="todo.completed" (change)="store.toggleTodo(todo.id)" />
-      {{ todo.title }}
-    </div>
+    @for (todo of store.filteredTodos(); track todo.id) {
+      <div>
+        <input type="checkbox" [checked]="todo.completed" (change)="store.toggleTodo(todo.id)" />
+        {{ todo.title }}
+      </div>
+    }
 
     <p>Active: {{ store.activeCount() }}</p>
 
@@ -727,10 +744,12 @@ export class CartComponent {
 
 ```html
 <!-- Template -->
-<div *ngFor="let item of store.items()">
+@for (item of store.items(); track item.product.id) {
+<div>
   {{ item.product.name }} - Qty: {{ item.quantity }}
   <button (click)="removeItem(item.product.id)">Remove</button>
 </div>
+}
 
 <p>Total Items: {{ store.itemCount() }}</p>
 <p>Total Price: {{ store.total() | currency }}</p>
@@ -762,9 +781,9 @@ When you commit to Angular Signals, NgRx SignalStore provides seamless integrati
     <p>Status: {{ status() }}</p>
 
     <!-- Complex derived state requires combineLatest -->
-    <div *ngIf="dashboardSummary$ | async as summary">
-      {{ summary.message }}
-    </div>
+    @if (dashboardSummary$ | async; as summary) {
+      <div>{{ summary.message }}</div>
+    }
   `,
 })
 export class DashboardComponent {
@@ -862,7 +881,9 @@ export const DashboardStore = signalStore(
 @Component({
   template: `
     <input [formControl]="emailControl" />
-    <p *ngIf="isEmailTaken$ | async">Email is taken</p>
+    @if (isEmailTaken$ | async) {
+      <p>Email is taken</p>
+    }
     <button [disabled]="!canSubmit()">Submit</button>
   `,
 })
@@ -897,7 +918,9 @@ export class RegistrationComponent {
 @Component({
   template: `
     <input [formControl]="emailControl" />
-    <p *ngIf="formStore.isEmailTaken()">Email is taken</p>
+    @if (formStore.isEmailTaken()) {
+      <p>Email is taken</p>
+    }
     <button [disabled]="!formStore.canSubmit()">Submit</button>
   `,
 })
@@ -905,10 +928,16 @@ export class RegistrationComponent {
   emailControl = new FormControl('');
   formStore = inject(RegistrationFormStore);
 
+  // Convert the FormControl stream into a signal
+  // (requires `import { toSignal } from '@angular/core/rxjs-interop';`)
+  private readonly email = toSignal(this.emailControl.valueChanges, {
+    initialValue: this.emailControl.value ?? '',
+  });
+
   constructor() {
-    // Update store when form changes
+    // Update store when the signal changes
     effect(() => {
-      this.formStore.updateEmail(this.emailControl.value);
+      this.formStore.updateEmail(this.email());
     });
   }
 }
@@ -1130,10 +1159,10 @@ For a new Angular 20 application, NgRx SignalStore should be your **only** state
 @Component({...})
 export class UserComponent {
   // Signal-based inputs
-  @Input() userId = input.required<string>();
+  readonly userId = input.required<string>();
 
   // Signal-based queries
-  userCard = viewChild<UserCardComponent>('card');
+  readonly userCard = viewChild.required<UserCardComponent>('card');
 
   // Signal-based local state
   isEditing = signal(false);
@@ -1371,7 +1400,8 @@ export const FeatureStore = signalStore(
 1. **Map Concepts:**
    - `BehaviorSubject` → `signal()`
    - `combineLatest()` → `computed()`
-   - `.subscribe()` → `effect()` or direct signal reads
+
+- `.subscribe()` → `toSignal()` for state, or `.pipe(takeUntilDestroyed())` for side effects
 
 2. **Start Small:**
    - Convert one component's local state to signals
